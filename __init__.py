@@ -170,18 +170,45 @@ try:
             return bad
 
         CHECKS.append({
+            'symbol': 'three_poles',
+            'label': '3-edge Poles',
+            'definition': 'A vertex with 3 edges connected to it. Also known as an N-Pole',
+            'default': False
+        })
+        def check_three_poles(self):
+            bad = { 'verts': [] }
+            for v in self.b.verts:
+                if 3 == len(v.link_edges):
+                    bad['verts'].append(v.index)
+            return bad
+
+        CHECKS.append({
+            'symbol': 'five_poles',
+            'label': '5-edge Poles',
+            'definition': 'A vertex with 5 edges connected to it. Also known as an E-Pole',
+            'default': False
+        })
+
+        def check_five_poles(self):
+            bad = {'verts': [] }
+            for v in self.b.verts:
+                if 5 == len(v.link_edges):
+                    bad['verts'].append(v.index)
+            return bad
+
+        CHECKS.append({
             'symbol': 'sixplus_poles',
             'label': '6+-edge Poles',
             'definition': 'A vertex with 6 or more edges connected to it. Generally this is not something you want, but since some kinds of extrusions will legitimately cause such a pole (imagine extruding each face of a Cube outward, the inner corners are rightful 6+-poles). Still, if you don\'t know for sure that you want them, it is good to enable this',
-            'default': False
+            'default': True
         })
+
         def check_sixplus_poles(self):
             bad = { 'verts': [] }
             for v in self.b.verts:
                 if 5 < len(v.link_edges):
                     bad['verts'].append(v.index)
             return bad
-
         # [Your great new idea here] -> Tell me about it: rking@panoptic.com
 
         # ...plus the 'Default Name' check.
