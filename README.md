@@ -69,7 +69,7 @@ script directly. (And re-visit that URL for the newest version, later on.)
 Installing
 ----------
 
-The super-awesome way is to directly symlink `meshlint.py` into your [Blender
+The super-awesome way is to directly symlink `__init__.py` into your [Blender
 Addons
 Dir](http://wiki.blender.org/index.php/Doc:2.6/Manual/Introduction/Installing_Blender/DirectoryLayout).
 The advantage is that the previous section's `git pull` will download the
