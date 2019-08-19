@@ -63,7 +63,7 @@ But I realize that not everyone has `git` or an operating system capable of
 symlinking.
 
 So, for those that can't: You can simply download the
-[meshlint.py](https://raw.github.com/ryanjosephking/meshlint/master/meshlint.py)
+[__init__.py](https://raw.github.com/ryanjosephking/meshlint/master/__init__.py)
 script directly. (And re-visit that URL for the newest version, later on.)
 
 Installing
@@ -82,7 +82,7 @@ Addon...` screen.")
 Hit `Ctrl+Alt+u` to load up the User Preferences (I always use the keystroke
 for this because of the occasional time where you miss, using the `File` menu,
 and click `Save User Settings`. Click the `Install Addon...` button at the
-bottom, then navigate to your `meshlint.py` script.
+bottom, then navigate to your `__init__.py` script.
 
 ![The Enable Checkbox](meshlint/raw/master/img/enable-checkbox.png "The Enable
 checkbox.")
