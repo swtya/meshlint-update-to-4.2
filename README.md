@@ -33,7 +33,7 @@ iteratively with `b`order selects and `Middle Mouse Button` to deselect the
 elements you already know about.
 
 ![Live Update Screenshot](/img/infobar.png "Live update
-screnshot.")
+screenshot.")
 
 Also, you can enable `Continuous Check`, which is a huge aspect to this. It is
 good for cases where you think you won't be creating any new problem geometry.
@@ -49,60 +49,38 @@ And finally, it now has a `Deselect all Lint-free Objects` button. This is a
 process improvement for the "whole scene" checks, allowing you to see a better
 overview.
 
-Getting
--------
-
-Best way is to:
-
-    git clone git@github.com:ryanjosephking/meshlint.git
-
-That way, you can `git pull` later on and it will automatically refresh to the
-latest (theoretically-)good version.
-
-But I realize that not everyone has `git` or an operating system capable of
-symlinking.
-
-So, for those that can't: You can simply download the
-[__init__.py](https://raw.github.com/ryanjosephking/meshlint/master/__init__.py)
-script directly. (And re-visit that URL for the newest version, later on.)
-
 Installing
 ----------
+Download the release ZIP, extract this to the correct folder depending on your
+operating system. See [Blender Extensions Dir](https://docs.blender.org/manual/en/latest/advanced/blender_directory_layout.html)
 
-The super-awesome way is to directly symlink `__init__.py` into your [Blender
-Addons
-Dir](http://wiki.blender.org/index.php/Doc:2.6/Manual/Introduction/Installing_Blender/DirectoryLayout).
-The advantage is that the previous section's `git pull` will download the
-newest version automatically. But not everyone can be expected to be
-superawesome all the time, so continue on:
+Advanced technique: 
+The super-awesome way is to directly symlink `__init__.py` from your git into
+the extension folder. The advantage is that the previous section's `git pull` 
+will download the newest version automatically.
 
 ![Installing Addon](/img/install-addon.png "`Install
 Addon...` screen.")
 
-Hit `Ctrl+Alt+u` to load up the User Preferences (I always use the keystroke
-for this because of the occasional time where you miss, using the `File` menu,
-and click `Save User Settings`. Click the `Install Addon...` button at the
-bottom, then navigate to your `__init__.py` script.
+Hit `Ctrl+,` to open up the Edit -> Preferences... Then click 'Get Extensions'
+tab. MeshLint should show in the installed group if the directory/files have
+been found. Then jump to the "Add-ons" tab and tick the square next to MeshLint
 
 ![The Enable Checkbox](/img/enable-checkbox.png "The Enable
 checkbox.")
 
-Next, and this is a tricky bit, if you're not used to installing Addons: you
-have to follow up by checking this little box on the right of the Addon entry
-in the list. If, for some reason, you have a hard time finding it, you can
-search for `MeshLint` or click on the `Mesh` button on the left. Hopefully,
-though, it comes right up when you do `Install Addon...`.
+If, for some reason, you have a hard time finding it, you can
+search for `MeshLint`. 
 
-If you want to keep MeshLint available (and who wouldn't?), follow the above
-steps on a fresh `.blend` (one you `Ctrl+n`d), then hit `Ctrl+u` at this
-point. The next time you run Blender you won't have to repeat the above.
+The next time you run Blender you won't have to repeat the above.
 
 ![Where is it? -> In the Object Data
 properties](/img/where-is-it.png "Object Data properties")
 
 When installed, it will add a new Subpanel to the bottom of the `Object Data`
 properties (the button in the `Properties Editor` that looks like the inverted
-triangle).
+triangle). This is context sensitive and becomes visible when an appropriate 
+object in the scene has first been selected.
 
 The Name
 --------
@@ -121,9 +99,29 @@ debugging and brainstorming, both. There's a spot right below this text for a
 
 <rking@panoptic.com>
 
+Getting Git
+-----------
+
+Best way is to:
+
+    git clone git@github.com:ryanjosephking/meshlint.git
+
+That way, you can `git pull` later on and it will automatically refresh to the
+latest (theoretically-good) version.
+
+But I realize that not everyone has `git` or an operating system capable of
+symlinking.
+
+So, for those that can't: You can simply download the
+[__init__.py](https://raw.github.com/ryanjosephking/meshlint/master/__init__.py)
+script directly. (And re-visit that URL for the newest version, later on.)
+
+
 Thanks
 -----
 
+- [SavMartin](https://github.com/SavMartin/meshlint-Update-to-2.80/) / Sav
+  Martin for making the port to 2.80
 - [taniwha](http://taniwha.org/~bill/) / Bill Currie - For being part of the
   original idea and for Alpha and Beta testing.
 - [endikos](http://www.endikos.com/) / William Knechtel - For also being an
