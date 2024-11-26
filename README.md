@@ -1,10 +1,10 @@
-![MeshLint Logo](meshlint/raw/master/img/logo-suzanne.png "The default Monkey
+![MeshLint Logo](/img/logo-suzanne.png "The default Monkey
 has 32 Tris, 42 Nonmanifold Elements, and 9 6+-Edge Poles.")
 
 A Blender Addon to help you keep your meshes clean and lint-free, like a
 spell-checker for your meshes.
 
-![Results with Suzanne](meshlint/raw/master/img/messed-up-mesh.png "Found some
+![Results with Suzanne](/img/messed-up-mesh.png "Found some
 Issues.")
 
 Can check for:
@@ -32,7 +32,7 @@ will center the 3D Viewport on the problems. You might have to do this
 iteratively with `b`order selects and `Middle Mouse Button` to deselect the
 elements you already know about.
 
-![Live Update Screenshot](meshlint/raw/master/img/infobar.png "Live update
+![Live Update Screenshot](/img/infobar.png "Live update
 screnshot.")
 
 Also, you can enable `Continuous Check`, which is a huge aspect to this. It is
@@ -76,7 +76,7 @@ The advantage is that the previous section's `git pull` will download the
 newest version automatically. But not everyone can be expected to be
 superawesome all the time, so continue on:
 
-![Installing Addon](meshlint/raw/master/img/install-addon.png "`Install
+![Installing Addon](/img/install-addon.png "`Install
 Addon...` screen.")
 
 Hit `Ctrl+Alt+u` to load up the User Preferences (I always use the keystroke
@@ -84,7 +84,7 @@ for this because of the occasional time where you miss, using the `File` menu,
 and click `Save User Settings`. Click the `Install Addon...` button at the
 bottom, then navigate to your `__init__.py` script.
 
-![The Enable Checkbox](meshlint/raw/master/img/enable-checkbox.png "The Enable
+![The Enable Checkbox](/img/enable-checkbox.png "The Enable
 checkbox.")
 
 Next, and this is a tricky bit, if you're not used to installing Addons: you
@@ -98,7 +98,7 @@ steps on a fresh `.blend` (one you `Ctrl+n`d), then hit `Ctrl+u` at this
 point. The next time you run Blender you won't have to repeat the above.
 
 ![Where is it? -> In the Object Data
-properties](meshlint/raw/master/img/where-is-it.png "Object Data properties")
+properties](/img/where-is-it.png "Object Data properties")
 
 When installed, it will add a new Subpanel to the bottom of the `Object Data`
 properties (the button in the `Properties Editor` that looks like the inverted
@@ -130,7 +130,7 @@ Thanks
   idea guy and tester, and for being a great Brother in the Lord, anyway.
 - [lsmft](http://www.youtube.com/user/Ismft) / Kevin Wood - For being a
   premeir Beta tester, complete with a [UI improvement
-  mockup](meshlint/raw/master/img/lsmft.png "Likes Sending Me Fine
+  mockup](/img/lsmft.png "Likes Sending Me Fine
   Templates"), and also for providing the hardware that was used to write it.
   (!)
 - [moth3r](http://www.moth3r.com/) / Ivan Šantić - For being one of the most
