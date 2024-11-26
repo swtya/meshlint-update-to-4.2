@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+id = "MeshLint"
+name = "MeshLint"
+version = "0.1.1"
+tagline = "MeshLint is like spell-checking for your Meshes"
+maintainer = "Community"
+type = "add-on"
+tags = ["Mesh Lint"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-2.0-or-later"]
+website = "https://github.com/swtya/meshlint-update-to-4.2"
+copyright = ["rking"]
