@@ -364,7 +364,7 @@ try:
                 if 'INFO' != area.type:
                     continue
                 if None is message:
-                    area.header_text_set()
+                    area.header_text_set(None)
                 else:
                     area.header_text_set('MeshLint: ' + message)
 
