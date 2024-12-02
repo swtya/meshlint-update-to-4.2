@@ -302,11 +302,7 @@ try:
             now_counts = analyzer.topology_counts()
             previous_topology_counts = cls.previous_topology_counts
             if previous_topology_counts is not None:
-                try:
-                    previous_data_name = previous_topology_counts['data'].name
-                except Exception:
-                    previous_data_name = None
-                    print('catch')
+                previous_data_name = previous_topology_counts['data'].name
             else:
                 previous_data_name = None
             now_name = now_counts['data'].name
