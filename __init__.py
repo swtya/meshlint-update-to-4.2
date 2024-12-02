@@ -23,8 +23,8 @@ bl_info = {
     "location": "Object Data properties > MeshLint",
     "description": "Check objects for: Tris / Ngons / Nonmanifoldness / etc",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/MeshLint",
-    "tracker_url": "https://github.com/ryanjosephking/meshlint/issues",
+    "wiki_url": "",
+    "tracker_url": "https://github.com/swtya/meshlint-update-to-4.2/issues",
     "category": "Mesh"}
 
 # For the ./mkblenderwiki script
@@ -112,7 +112,8 @@ try:
         CHECKS.append({
             'symbol': 'tris',
             'label': 'Tris',
-            'definition': 'A face with 3 edges. Often bad for modelling because it stops edge loops and does not deform well around bent areas. A mesh might look good until you animate, so beware!',
+            'definition': 'A face with 3 edges. Often bad for modelling because it stops edge loops and does not ' +
+                          'deform well around bent areas. A mesh might look good until you animate, so beware!',
             'default': True
         })
 
@@ -140,7 +141,10 @@ try:
         CHECKS.append({
             'symbol': 'nonmanifold',
             'label': 'Nonmanifold Elements',
-            'definition': 'Simply, shapes that won\'t hold water. More precisely, nonmanifold edges are those that do not have exactly 2 faces attached to them (either more or less). Nonmanifold verts are more complicated -- you can see their definition in BM_vert_is_manifold() in bmesh_queries.c',
+            'definition': 'Simply, shapes that won\'t hold water. More precisely, nonmanifold edges ' +
+                          'are those that do not have exactly 2 faces attached to them (either more ' +
+                          'or less). Nonmanifold verts are more complicated -- you can see their ' +
+                          'definition in BM_vert_is_manifold() in bmesh_queries.c',
             'default': True
         })
 
@@ -158,7 +162,8 @@ try:
         CHECKS.append({
             'symbol': 'interior_faces',
             'label': 'Interior Faces',
-            'definition': 'This confuses people. It is very specific: A face whose edges ALL have >2 faces attached. The simplest way to see this is to Ctrl+r a Default Cube and hit \'f\'',
+            'definition': 'This confuses people. It is very specific: A face whose edges ALL have >2 faces ' +
+                          'attached. The simplest way to see this is to Ctrl+r a Default Cube and hit \'f\'',
             'default': True
         })
 
@@ -200,7 +205,10 @@ try:
         CHECKS.append({
             'symbol': 'sixplus_poles',
             'label': '6+-edge Poles',
-            'definition': 'A vertex with 6 or more edges connected to it. Generally this is not something you want, but since some kinds of extrusions will legitimately cause such a pole (imagine extruding each face of a Cube outward, the inner corners are rightful 6+-poles). Still, if you don\'t know for sure that you want them, it is good to enable this',
+            'definition': 'A vertex with 6 or more edges connected to it. Generally this is not something you ' +
+                          'want, but since some kinds of extrusions will legitimately cause such a pole (imagine ' +
+                          'extruding each face of a Cube outward, the inner corners are rightful 6+-poles). ' +
+                          'Still, if you don\'t know for sure that you want them, it is good to enable this',
             'default': True
         })
 
@@ -256,7 +264,7 @@ try:
                 self.select_edge(each.index)
 
         def topology_counts(self):
-            data = self.obj.data
+            # data = self.obj.data
             return {
                 'data': self.obj.data,
                 'faces': len(self.b.faces),
@@ -293,8 +301,12 @@ try:
             analyzer = MeshLintAnalyzer()
             now_counts = analyzer.topology_counts()
             previous_topology_counts = cls.previous_topology_counts
-            if not None is previous_topology_counts:
-                previous_data_name = previous_topology_counts['data'].name
+            if previous_topology_counts is not None:
+                try:
+                    previous_data_name = previous_topology_counts['data'].name
+                except Exception:
+                    previous_data_name = None
+                    print('catch')
             else:
                 previous_data_name = None
             now_name = now_counts['data'].name
@@ -305,12 +317,12 @@ try:
                 analysis = analyzer.find_problems()
                 diff_msg = cls.diff_analyses(
                     cls.previous_analysis, analysis)
-                if not None is diff_msg:
+                if diff_msg is not None:
                     cls.announce(diff_msg)
                     cls.time_complained = time.time()
                 cls.previous_topology_counts = now_counts
                 cls.previous_analysis = analysis
-            if not None is cls.time_complained \
+            if cls.time_complained is not None \
                     and COMPLAINT_TIMEOUT < time.time() - cls.time_complained:
                 cls.announce(None)
                 cls.time_complained = None
@@ -324,7 +336,7 @@ try:
             dict_now = cls.make_labels_dict(after)
             for check in MeshLintAnalyzer.CHECKS:
                 check_name = check['label']
-                if not check_name in dict_now.keys():
+                if check_name not in dict_now.keys():
                     continue
                 report = dict_now[check_name]
                 report_before = dict_before.get(check_name, {})
@@ -468,7 +480,7 @@ try:
 
         def handle_troubled_meshes(self):
             for obj in bpy.context.selected_objects:
-                if not obj in self.troubled_meshes:
+                if obj not in self.troubled_meshes:
                     obj.select = False
 
     class MESH_PT_MeshLintControl(bpy.types.Panel):
@@ -597,7 +609,7 @@ try:
                 'Torus',
             ]
             pat = '(%s)\.?\d*$' % '|'.join(default_names)
-            return not None is re.match(pat, name)
+            return re.match(pat, name) is not None
 
     def depluralize(**args):
         if 1 == args['count']:
