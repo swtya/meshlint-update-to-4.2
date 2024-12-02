@@ -300,9 +300,14 @@ try:
                 return
             analyzer = MeshLintAnalyzer()
             now_counts = analyzer.topology_counts()
+
             previous_topology_counts = cls.previous_topology_counts
             if previous_topology_counts is not None:
-                previous_data_name = previous_topology_counts['data'].name
+                try:
+                    previous_data_name = previous_topology_counts['data'].name
+                except Exception:
+                    previous_data_name = None
+                    print('Caught: Stale mesh topology counts, (was probably deleted) - in MeshLint')
             else:
                 previous_data_name = None
             now_name = now_counts['data'].name
@@ -370,7 +375,7 @@ try:
                 if 'INFO' != area.type:
                     continue
                 if None is message:
-                    area.header_text_set()
+                    area.header_text_set(None)
                 else:
                     area.header_text_set('MeshLint: ' + message)
 
