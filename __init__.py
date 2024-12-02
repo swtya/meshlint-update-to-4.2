@@ -17,14 +17,14 @@
 
 bl_info = {
     "name": "MeshLint: Like Spell-checking for your Meshes",
-    "author": "rking (Port to 2.80 Sav Martin)",
-    "version": (1, 0),
-    "blender": (2, 80, 0),
+    "author": "rking with Port to 2.80 by Sav Martin & then port to 4.2 by Swtya",
+    "version": (1, 1),
+    "blender": (4, 2, 0),
     "location": "Object Data properties > MeshLint",
     "description": "Check objects for: Tris / Ngons / Nonmanifoldness / etc",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/MeshLint",
-    "tracker_url": "https://github.com/ryanjosephking/meshlint/issues",
+    "wiki_url": "",
+    "tracker_url": "https://github.com/swtya/meshlint-update-to-4.2/issues",
     "category": "Mesh"}
 
 # For the ./mkblenderwiki script
@@ -45,12 +45,11 @@ try:
     from mathutils import Vector
 
     SUBPANEL_LABEL = 'MeshLint'
-    COMPLAINT_TIMEOUT = 3 # seconds
-    ELEM_TYPES = [ 'verts', 'edges', 'faces' ]
+    COMPLAINT_TIMEOUT = 3  # seconds
+    ELEM_TYPES = ['verts', 'edges', 'faces']
 
     N_A_STR = '(N/A - disabled)'
     TBD_STR = '...'
-
 
     def is_edit_mode():
         return 'EDIT_MESH' == bpy.context.mode
@@ -59,16 +58,13 @@ try:
         if not is_edit_mode():
             bpy.ops.object.editmode_toggle()
 
-
     def ensure_not_edit_mode():
         if is_edit_mode():
             bpy.ops.object.editmode_toggle()
 
-
     def has_active_mesh(context):
         obj = context.active_object
         return obj and 'MESH' == obj.type
-
 
     class MeshLintAnalyzer:
         CHECKS = []
@@ -92,7 +88,7 @@ try:
                 check_method_name = 'check_' + sym
                 check_method = getattr(type(self), check_method_name)
                 bad = check_method(self)
-                report = { 'lint': lint }
+                report = {'lint': lint}
                 for elemtype in ELEM_TYPES:
                     indices = bad.get(elemtype, [])
                     report[elemtype] = indices
@@ -108,7 +104,7 @@ try:
         def none_analysis(cls):
             analysis = []
             for lint in cls.CHECKS:
-                row = { elemtype: [] for elemtype in ELEM_TYPES }
+                row = {elemtype: [] for elemtype in ELEM_TYPES}
                 row['lint'] = lint
                 analysis.append(row)
             return analysis
@@ -116,11 +112,13 @@ try:
         CHECKS.append({
             'symbol': 'tris',
             'label': 'Tris',
-            'definition': 'A face with 3 edges. Often bad for modeling because it stops edge loops and does not deform well around bent areas. A mesh might look good until you animate, so beware!',
+            'definition': 'A face with 3 edges. Often bad for modelling because it stops edge loops and does not ' +
+                          'deform well around bent areas. A mesh might look good until you animate, so beware!',
             'default': True
         })
+
         def check_tris(self):
-            bad = { 'faces': [] }
+            bad = {'faces': []}
             for f in self.b.faces:
                 if 3 == len(f.verts):
                     bad['faces'].append(f.index)
@@ -132,8 +130,9 @@ try:
             'definition': 'A face with >4 edges. Is generally bad in exactly the same ways as Tris',
             'default': True
         })
+
         def check_ngons(self):
-            bad = { 'faces': [] }
+            bad = {'faces': []}
             for f in self.b.faces:
                 if 4 < len(f.verts):
                     bad['faces'].append(f.index)
@@ -142,9 +141,13 @@ try:
         CHECKS.append({
             'symbol': 'nonmanifold',
             'label': 'Nonmanifold Elements',
-            'definition': 'Simply, shapes that won\'t hold water. More precisely, nonmanifold edges are those that do not have exactly 2 faces attached to them (either more or less). Nonmanifold verts are more complicated -- you can see their definition in BM_vert_is_manifold() in bmesh_queries.c',
+            'definition': 'Simply, shapes that won\'t hold water. More precisely, nonmanifold edges ' +
+                          'are those that do not have exactly 2 faces attached to them (either more ' +
+                          'or less). Nonmanifold verts are more complicated -- you can see their ' +
+                          'definition in BM_vert_is_manifold() in bmesh_queries.c',
             'default': True
         })
+
         def check_nonmanifold(self):
             bad = {}
             for elemtype in 'verts', 'edges':
@@ -159,11 +162,13 @@ try:
         CHECKS.append({
             'symbol': 'interior_faces',
             'label': 'Interior Faces',
-            'definition': 'This confuses people. It is very specific: A face whose edges ALL have >2 faces attached. The simplest way to see this is to Ctrl+r a Default Cube and hit \'f\'',
+            'definition': 'This confuses people. It is very specific: A face whose edges ALL have >2 faces ' +
+                          'attached. The simplest way to see this is to Ctrl+r a Default Cube and hit \'f\'',
             'default': True
         })
-        def check_interior_faces(self): # translated from editmesh_select.c
-            bad = { 'faces': [] }
+
+        def check_interior_faces(self):  # translated from editmesh_select.c
+            bad = {'faces': []}
             for f in self.b.faces:
                 if not any(3 > len(e.link_faces) for e in f.edges):
                     bad['faces'].append(f.index)
@@ -175,8 +180,9 @@ try:
             'definition': 'A vertex with 3 edges connected to it. Also known as an N-Pole',
             'default': False
         })
+
         def check_three_poles(self):
-            bad = { 'verts': [] }
+            bad = {'verts': []}
             for v in self.b.verts:
                 if 3 == len(v.link_edges):
                     bad['verts'].append(v.index)
@@ -190,7 +196,7 @@ try:
         })
 
         def check_five_poles(self):
-            bad = {'verts': [] }
+            bad = {'verts': []}
             for v in self.b.verts:
                 if 5 == len(v.link_edges):
                     bad['verts'].append(v.index)
@@ -199,12 +205,15 @@ try:
         CHECKS.append({
             'symbol': 'sixplus_poles',
             'label': '6+-edge Poles',
-            'definition': 'A vertex with 6 or more edges connected to it. Generally this is not something you want, but since some kinds of extrusions will legitimately cause such a pole (imagine extruding each face of a Cube outward, the inner corners are rightful 6+-poles). Still, if you don\'t know for sure that you want them, it is good to enable this',
+            'definition': 'A vertex with 6 or more edges connected to it. Generally this is not something you ' +
+                          'want, but since some kinds of extrusions will legitimately cause such a pole (imagine ' +
+                          'extruding each face of a Cube outward, the inner corners are rightful 6+-poles). ' +
+                          'Still, if you don\'t know for sure that you want them, it is good to enable this',
             'default': True
         })
 
         def check_sixplus_poles(self):
-            bad = { 'verts': [] }
+            bad = {'verts': []}
             for v in self.b.verts:
                 if 5 < len(v.link_edges):
                     bad['verts'].append(v.index)
@@ -226,19 +235,19 @@ try:
                     self.select_face(i)
                 else:
                     print("MeshLint says: Huh?? → elemtype of %s." % elemtype)
-        
+
         def select_vert(self, index):
             ob = bpy.context.edit_object
             me = ob.data
-            bm = bmesh.from_edit_mesh(me)            
-            bm.verts.ensure_lookup_table() #sav
+            bm = bmesh.from_edit_mesh(me)
+            bm.verts.ensure_lookup_table()  # sav
             self.b.verts[index].select = True
 
         def select_edge(self, index):
             ob = bpy.context.edit_object
             me = ob.data
-            bm = bmesh.from_edit_mesh(me)            
-            bm.edges.ensure_lookup_table() #sav
+            bm = bmesh.from_edit_mesh(me)
+            bm.edges.ensure_lookup_table()  # sav
             edge = self.b.edges[index]
             edge.select = True
             for each in edge.verts:
@@ -247,20 +256,20 @@ try:
         def select_face(self, index):
             ob = bpy.context.edit_object
             me = ob.data
-            bm = bmesh.from_edit_mesh(me)            
-            bm.faces.ensure_lookup_table() #sav
+            bm = bmesh.from_edit_mesh(me)
+            bm.faces.ensure_lookup_table()  # sav
             face = self.b.faces[index]
             face.select = True
             for each in face.edges:
                 self.select_edge(each.index)
 
         def topology_counts(self):
-            data = self.obj.data
+            # data = self.obj.data
             return {
                 'data': self.obj.data,
                 'faces': len(self.b.faces),
                 'edges': len(self.b.edges),
-                'verts': len(self.b.verts) }
+                'verts': len(self.b.verts)}
 
         for lint in CHECKS:
             sym = lint['symbol']
@@ -275,11 +284,9 @@ try:
                     default=lint['default'],
                     description=lint['definition']))
 
-
     @bpy.app.handlers.persistent
     def global_repeated_check(dummy):
         MeshLintContinuousChecker.check()
-
 
     class MeshLintContinuousChecker():
         current_message = ''
@@ -293,9 +300,9 @@ try:
                 return
             analyzer = MeshLintAnalyzer()
             now_counts = analyzer.topology_counts()
-            previous_topology_counts = \
-                cls.previous_topology_counts
-            if not None is previous_topology_counts:
+
+            previous_topology_counts = cls.previous_topology_counts
+            if previous_topology_counts is not None:
                 try:
                     previous_data_name = previous_topology_counts['data'].name
                 except Exception:
@@ -311,12 +318,12 @@ try:
                 analysis = analyzer.find_problems()
                 diff_msg = cls.diff_analyses(
                     cls.previous_analysis, analysis)
-                if not None is diff_msg:
+                if diff_msg is not None:
                     cls.announce(diff_msg)
                     cls.time_complained = time.time()
                 cls.previous_topology_counts = now_counts
                 cls.previous_analysis = analysis
-            if not None is cls.time_complained \
+            if cls.time_complained is not None \
                     and COMPLAINT_TIMEOUT < time.time() - cls.time_complained:
                 cls.announce(None)
                 cls.time_complained = None
@@ -330,7 +337,7 @@ try:
             dict_now = cls.make_labels_dict(after)
             for check in MeshLintAnalyzer.CHECKS:
                 check_name = check['label']
-                if not check_name in dict_now.keys():
+                if check_name not in dict_now.keys():
                     continue
                 report = dict_now[check_name]
                 report_before = dict_before.get(check_name, {})
@@ -372,7 +379,6 @@ try:
                 else:
                     area.header_text_set('MeshLint: ' + message)
 
-
     class MeshLintVitalizer(bpy.types.Operator):
         'Toggles the real-time execution of the checks (Edit Mode only)'
         bl_idname = 'meshlint.live_toggle'
@@ -386,18 +392,16 @@ try:
 
         def execute(self, context):
             if MeshLintVitalizer.is_live:
-                bpy.app.handlers.depsgraph_update_post.remove(global_repeated_check) #sav
+                bpy.app.handlers.depsgraph_update_post.remove(global_repeated_check)  # sav
                 MeshLintVitalizer.is_live = False
             else:
-                bpy.app.handlers.depsgraph_update_post.append(global_repeated_check) #sav
+                bpy.app.handlers.depsgraph_update_post.append(global_repeated_check)  # sav
                 MeshLintVitalizer.is_live = True
             return {'FINISHED'}
-
 
     def activate(obj):
         # bpy.context.scene.objects.active = obj #sav
         bpy.context.view_layer.objects.active = obj
-
 
     class MeshLintObjectLooper:
         def examine_active_object(self):
@@ -455,7 +459,7 @@ try:
                 elif 'EDIT_MESH' != original_mode:
                     ensure_not_edit_mode()
             return {'FINISHED'}
-        
+
         def handle_troubled_meshes(self):
             pass
 
@@ -477,7 +481,7 @@ try:
 
         def handle_troubled_meshes(self):
             for obj in bpy.context.selected_objects:
-                if not obj in self.troubled_meshes:
+                if obj not in self.troubled_meshes:
                     obj.select = False
 
     class MESH_PT_MeshLintControl(bpy.types.Panel):
@@ -511,7 +515,7 @@ try:
                 play_pause = 'PLAY'
             right.operator(
                 'meshlint.live_toggle', text=live_label, icon=play_pause)
-            
+
             layout.split().operator(
                 'meshlint.objects_deselect',
                 text='Deselect all Lint-free Objects',
@@ -555,6 +559,7 @@ try:
         def build_object_criticisms(cls, objects, total_problems):
             already_complained = total_problems > 0
             criticisms = []
+
             def add_crit(crit):
                 if already_complained:
                     conjunction = 'and also'
@@ -605,15 +610,13 @@ try:
                 'Torus',
             ]
             pat = '(%s)\.?\d*$' % '|'.join(default_names)
-            return not None is re.match(pat, name)
-
+            return re.match(pat, name) is not None
 
     def depluralize(**args):
         if 1 == args['count']:
             return args['string'].rstrip('s')
         else:
             return args['string']
-
 
     # Hrm. Why does it work for some Blender's but not others?
     try:
@@ -622,24 +625,23 @@ try:
 
         class TestControl(unittest.TestCase):
             def test_scale_application(self):
-                for bad in [ [0,0,0], [1,2,3], [1,1,1.1] ]:
+                for bad in [[0, 0, 0], [1, 2, 3], [1, 1, 1.1]]:
                     self.assertEqual(
                         True, MESH_PT_MeshLintControl.has_unapplied_scale(bad),
                         "Unapplied scale: %s" % bad)
                 self.assertEqual(
-                    False, MESH_PT_MeshLintControl.has_unapplied_scale([1,1,1]),
+                    False, MESH_PT_MeshLintControl.has_unapplied_scale([1, 1, 1]),
                     "Applied scale (1,1,1)")
 
             def test_bad_names(self):
-                for bad in [ 'Cube', 'Cube.001', 'Sphere.123' ]:
+                for bad in ['Cube', 'Cube.001', 'Sphere.123']:
                     self.assertEqual(
                         True, MESH_PT_MeshLintControl.is_bad_name(bad),
                         "Bad name: %s" % bad)
-                for ok in [ 'Whatever', 'NumbersOkToo.001' ]:
+                for ok in ['Whatever', 'NumbersOkToo.001']:
                     self.assertEqual(
                         False, MESH_PT_MeshLintControl.is_bad_name(ok),
                         "OK name: %s" % ok)
-
 
         class TestUtilities(unittest.TestCase):
             def test_depluralize(self):
@@ -650,22 +652,21 @@ try:
                     'foos',
                     depluralize(count=2, string='foos'))
 
-
         class TestAnalysis(unittest.TestCase):
             def test_make_labels_dict(self):
                 self.assertEqual(
                     {
                         'Label One': {
-                            'edges': [1,2], 'verts': [], 'faces': [] },
+                            'edges': [1, 2], 'verts': [], 'faces': []},
                         'Label Two': {
-                            'edges': [], 'verts': [5], 'faces': [3] }
+                            'edges': [], 'verts': [5], 'faces': [3]}
                     },
                     MeshLintContinuousChecker.make_labels_dict(
                         [
-                            { 'lint': { 'label': 'Label One' },
-                                'edges': [1,2], 'verts': [], 'faces': [] },
-                            { 'lint': { 'label': 'Label Two' },
-                                'edges': [], 'verts': [5], 'faces': [3] }
+                            {'lint': {'label': 'Label One'},
+                                'edges': [1, 2], 'verts': [], 'faces': []},
+                            {'lint': {'label': 'Label Two'},
+                                'edges': [], 'verts': [5], 'faces': [3]}
                         ]),
                     'Conversion of incoming analysis into label-keyed dict')
                 self.assertEqual(
@@ -686,61 +687,59 @@ try:
                         None,
                         [
                             {
-                                'lint': { 'label': 'Tris' },
-                                'verts': [1,2,3,4],
+                                'lint': {'label': 'Tris'},
+                                'verts': [1, 2, 3, 4],
                                 'edges': [],
                                 'faces': [],
                             },
                         ]),
                     'When there was no previous analysis')
                 self.assertEqual(
-                    'Found Tris: 2 edges, ' +\
-                        'Nonmanifold Elements: 4 verts, 1 face',
+                    'Found Tris: 2 edges, ' +
+                    'Nonmanifold Elements: 4 verts, 1 face',
                     MeshLintContinuousChecker.diff_analyses(
                         [
-                            { 'lint': { 'label': 'Tris' },
-                              'verts': [], 'edges': [1,4], 'faces': [], },
-                            { 'lint': { 'label': 'CheckB' },
-                              'verts': [], 'edges': [2,3], 'faces': [], },
-                            { 'lint': { 'label': 'Nonmanifold Elements' },
-                              'verts': [], 'edges': [], 'faces': [2,3], },
+                            {'lint': {'label': 'Tris'},
+                             'verts': [], 'edges': [1, 4], 'faces': [], },
+                            {'lint': {'label': 'CheckB'},
+                             'verts': [], 'edges': [2, 3], 'faces': [], },
+                            {'lint': {'label': 'Nonmanifold Elements'},
+                             'verts': [], 'edges': [], 'faces': [2, 3], },
                         ],
                         [
-                            { 'lint': { 'label': 'Tris' },
-                              'verts': [], 'edges': [1,4,5,6], 'faces': [], },
-                            { 'lint': { 'label': 'CheckB' },
-                              'verts': [], 'edges': [2,3], 'faces': [], },
-                            { 'lint': { 'label': 'Nonmanifold Elements' },
-                              'verts': [1,2,3,4], 'edges': [],
-                                'faces': [2,3,5], },
+                            {'lint': {'label': 'Tris'},
+                             'verts': [], 'edges': [1, 4, 5, 6], 'faces': [], },
+                            {'lint': {'label': 'CheckB'},
+                             'verts': [], 'edges': [2, 3], 'faces': [], },
+                            {'lint': {'label': 'Nonmanifold Elements'},
+                             'verts': [1, 2, 3, 4], 'edges': [],
+                                'faces': [2, 3, 5], },
                         ]),
                     'Complex comparison of analyses')
                 self.assertEqual(
                     'Found Tris: 1 vert, Ngons: 2 faces, ' +
-                      'Nonmanifold Elements: 2 edges',
+                    'Nonmanifold Elements: 2 edges',
                     MeshLintContinuousChecker.diff_analyses(
                         [
-                            { 'lint': { 'label': '6+-edge Poles' },
-                              'verts': [], 'edges': [2,3], 'faces': [], },
-                            { 'lint': { 'label': 'Nonmanifold Elements' },
-                              'verts': [], 'edges': [2,3], 'faces': [], },
+                            {'lint': {'label': '6+-edge Poles'},
+                             'verts': [], 'edges': [2, 3], 'faces': [], },
+                            {'lint': {'label': 'Nonmanifold Elements'},
+                             'verts': [], 'edges': [2, 3], 'faces': [], },
                         ],
                         [
-                            { 'lint': { 'label': 'Tris' },
-                              'verts': [55], 'edges': [], 'faces': [], },
-                            { 'lint': { 'label': 'Ngons' },
-                              'verts': [], 'edges': [], 'faces': [5,6], },
-                            { 'lint': { 'label': 'Nonmanifold Elements' },
-                              'verts': [], 'edges': [2,3,4,5], 'faces': [], },
+                            {'lint': {'label': 'Tris'},
+                             'verts': [55], 'edges': [], 'faces': [], },
+                            {'lint': {'label': 'Ngons'},
+                             'verts': [], 'edges': [], 'faces': [5, 6], },
+                            {'lint': {'label': 'Nonmanifold Elements'},
+                             'verts': [], 'edges': [2, 3, 4, 5], 'faces': [], },
                         ]),
                     'User picked a different set of checks since last run.')
 
-
         class MockBlenderObject:
-            def __init__(self, name, scale=Vector([1,1,1])):
+            def __init__(self, name, scale=Vector([1, 1, 1])):
                 self.name = name
                 self.scale = scale
-
 
         class TestUI(unittest.TestCase):
             def test_complaints(self):
@@ -769,12 +768,12 @@ try:
                     ],
                     f([
                         MockBlenderObject('Sphere'),
-                        MockBlenderObject('Cube') ], 0),
+                        MockBlenderObject('Cube')], 0),
                     'Two bad names.')
 
-                scaled = MockBlenderObject('Solartech', scale=Vector([.2,2,1]))
+                scaled = MockBlenderObject('Solartech', scale=Vector([.2, 2, 1]))
                 self.assertEqual(
-                    [ '...but "Solartech" has an unapplied scale.' ],
+                    ['...but "Solartech" has an unapplied scale.'],
                     f([scaled], 0),
                     'Only problem is unapplied scale.'
                 )
@@ -785,7 +784,6 @@ try:
 
             def addSuccess(self, test):
                 pass
-
 
         class QuietTestRunner(unittest.TextTestRunner):
             resultclass = QuietOnSuccessTestResult
@@ -812,8 +810,8 @@ try:
                         # used to bypass this only when self.warnings is None.
                         if self.warnings in ['default', 'always']:
                             warnings.filterwarnings('module',
-                                    category=DeprecationWarning,
-                                    message='Please use assert\w+ instead.')
+                                                    category=DeprecationWarning,
+                                                    message='Please use assert\w+ instead.')
                     startTime = time.time()
                     startTestRun = getattr(result, 'startTestRun', None)
                     if startTestRun is not None:
@@ -870,8 +868,6 @@ try:
             rking@panoptic.com describing your system, he'd like to track down
             this condition.""")
 
-
-
     classes = (
         # QuietTestRunner,
         # QuietOnSuccessTestResult,
@@ -888,21 +884,16 @@ try:
         # MeshLintAnalyzer
     )
 
-
     def register():
         from bpy.utils import register_class
         for cls in classes:
             register_class(cls)
-        
-        
-
 
     def unregister():
         from bpy.utils import unregister_class
 
         for cls in classes:
             unregister_class(cls)
-
 
     if __name__ == "__main__":
         register()
