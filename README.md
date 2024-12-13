@@ -51,18 +51,22 @@ overview.
 
 Installing
 ----------
-Download the release ZIP, extract this to the correct folder depending on your
+Simple Method, download the release ZIP.
+* Option 1: Blender Edit -> Preferences... Then click the 'Add-ons' tab. In the top right
+there is a dropdown arrow choose 'Install from Disk...' select the zip file. Blender will then
+create a folder in the user extensions location with the correct name and enable MeshLint ready for use.
+* Option 2: If automatic install fails, extract the zip to the correct folder depending on your
 operating system. See [Blender Extensions Dir](https://docs.blender.org/manual/en/latest/advanced/blender_directory_layout.html)
 
 Advanced technique: 
-The super-awesome way is to directly symlink `__init__.py` from your git into
-the extension folder. The advantage is that the previous section's `git pull` 
+The super-awesome way is to directly symlink the MeshLint folder from your git into
+the extension folder. The advantage is that each `git pull` 
 will download the newest version automatically.
 
 ![Installing Addon](/img/install-addon.png "`Install
 Addon...` screen.")
 
-Hit `Ctrl+,` to open up the Edit -> Preferences... Then click 'Get Extensions'
+Hit `Ctrl+,` to open up the Edit -> Preferences... Then click the 'Get Extensions'
 tab. MeshLint should show in the installed group if the directory/files have
 been found. Then jump to the "Add-ons" tab and tick the square next to MeshLint
 
