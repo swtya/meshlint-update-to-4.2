@@ -1,12 +1,34 @@
 schema_version = "1.0.0"
+
+# Manifest file for MeshLint following documentation at, 
+# https://docs.blender.org/manual/en/latest/advanced/extensions/getting_started.html
+# The id is case sensitive with directory name!
+
 id = "MeshLint"
 name = "MeshLint"
 version = "0.1.1"
 tagline = "MeshLint is like spell-checking for your Meshes"
-maintainer = "Community"
+# "description": "Check objects for: Tris / Ngons / Nonmanifoldness / etc"
+# "location": "Object Data properties > MeshLint"
+
 type = "add-on"
-tags = ["Mesh Lint"]
+tags = ["Mesh"]
 blender_version_min = "4.2.0"
-license = ["SPDX:GPL-2.0-or-later"]
+
+maintainer = "Community (Swtya)"
 website = "https://github.com/swtya/meshlint-update-to-4.2"
-copyright = ["rking"]
+
+license = ["SPDX:GPL-3.0-or-later"]
+copyright = ["2012 rking"]
+# "author": "rking with Port to 2.80 by Sav Martin & then port to 4.2 by Swtya"
+
+# # These are the default build excluded patterns plus the testblends folder.
+# To build the zip file for release, on a clean checkout use: 
+# >>blender --command extension build --verbose
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "testblends",
+  "/.*/",
+  "/*.zip",
+]

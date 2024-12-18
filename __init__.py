@@ -1,5 +1,20 @@
+# Welcome to MeshLint 2024.
+#   This is a derivative work taken as a fork from ryanjosephking/meshlint.
+# The purpose is to make the required updates so that it is compatible with
+# Blender 4.2 onwards. Add-on management has been significantly modified and
+# these third party plugins are now referred to as "Extensions".
+#   I found this tool useful while debugging errors in BoltFactory generated
+# mesh objects when making 3D print parts. In order to keep using it I
+# required a port to the latest Blender release and could not find it having
+# already been done.
+#   Code is hosted on GitHub where the ancestry can be traced back.
+# https://github.com/swtya/meshlint-update-to-4.2
+# Issues can be raised, but to set expectations I'm not a software developer!
+#   Credit remains with rking. The contribution from SavMartin, who completed
+# the port to the Blender 2.80 family, made this step possible for me.
+#
 # TODO:
-#  - Exempt mirror-plane verts. You should not get penalized for them.
+#  - Exempt mirror-plane verts. You should not get penalised for them.
 #  - Check for intersected faces??
 #   - Would probably be O(n^m) or something.
 #   - Would need to check the post-modified mesh (e.g., Armature-deformed)
@@ -15,29 +30,11 @@
 #    this. Personally, I think you should hit Tab and deselect the one you
 #    want to skip, but I haven't thought it through too far.
 
-bl_info = {
-    "name": "MeshLint: Like Spell-checking for your Meshes",
-    "author": "rking with Port to 2.80 by Sav Martin & then port to 4.2 by Swtya",
-    "version": (1, 1),
-    "blender": (4, 2, 0),
-    "location": "Object Data properties > MeshLint",
-    "description": "Check objects for: Tris / Ngons / Nonmanifoldness / etc",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "https://github.com/swtya/meshlint-update-to-4.2/issues",
-    "category": "Mesh"}
-
-# For the ./mkblenderwiki script
-mkblenderwiki_info = {
-    "license": "GPL",
-    "py_download": "https://raw.github.com/ryanjosephking/meshlint/master/meshlint.py",
-    "git_download": "https://github.com/ryanjosephking/meshlint.git",
-    "input_img_prefix": "meshlint/raw/master/img/",
-    "wiki_img_prefix": "Scripts-Modeling-MeshLint-"}
 
 # Look for the "seeing error text", below. Something is super-fishy, but this
 # is the workaround.
-try:
+# try:   # swapping in an if(1) so that the indent stays the same while testing more
+if (1):
     import bpy
     import bmesh
     import time
@@ -264,7 +261,6 @@ try:
                 self.select_edge(each.index)
 
         def topology_counts(self):
-            # data = self.obj.data
             return {
                 'data': self.obj.data,
                 'faces': len(self.b.faces),
@@ -272,17 +268,20 @@ try:
                 'verts': len(self.b.verts)}
 
         for lint in CHECKS:
-            sym = lint['symbol']
             lint['count'] = TBD_STR
-            prop = 'meshlint_check_' + sym
-            lint['check_prop'] = prop
-            'meshlint_check_' + sym
+            lint['check_prop'] = 'meshlint_check_' + lint['symbol']
             setattr(
                 bpy.types.Scene,
-                prop,
+                lint['check_prop'],
                 bpy.props.BoolProperty(
                     default=lint['default'],
                     description=lint['definition']))
+            if hasattr(bpy.context, 'scene'):
+                # At first startup then context does not have a scene attribute
+                if hasattr(bpy.context.scene, lint['check_prop']):
+                    # When reloading the check_prop attribute, it might not have been created
+                    # If it has then proceed with defaulting the toggles settings.
+                    setattr(bpy.context.scene, lint['check_prop'], lint['default'])
 
     @bpy.app.handlers.persistent
     def global_repeated_check(dummy):
@@ -300,21 +299,9 @@ try:
                 return
             analyzer = MeshLintAnalyzer()
             now_counts = analyzer.topology_counts()
-
             previous_topology_counts = cls.previous_topology_counts
-            if previous_topology_counts is not None:
-                try:
-                    previous_data_name = previous_topology_counts['data'].name
-                except Exception:
-                    previous_data_name = None
-                    print('Caught: Stale mesh topology counts, (was probably deleted) - in MeshLint')
-            else:
-                previous_data_name = None
-            now_name = now_counts['data'].name
             if None is previous_topology_counts \
                     or now_counts != previous_topology_counts:
-                if not previous_data_name == now_name:
-                    before = MeshLintAnalyzer.none_analysis()
                 analysis = analyzer.find_problems()
                 diff_msg = cls.diff_analyses(
                     cls.previous_analysis, analysis)
@@ -421,7 +408,7 @@ try:
             examinees = [self.original_active] + bpy.context.selected_objects
             for obj in examinees:
                 if 'MESH' != obj.type:
-                    continue
+                    continue            # skip everything other than meshes
                 activate(obj)
                 good = self.examine_active_object()
                 ensure_not_edit_mode()
@@ -482,7 +469,7 @@ try:
         def handle_troubled_meshes(self):
             for obj in bpy.context.selected_objects:
                 if obj not in self.troubled_meshes:
-                    obj.select = False
+                    obj.select_set(False)
 
     class MESH_PT_MeshLintControl(bpy.types.Panel):
         bl_space_type = 'PROPERTIES'
@@ -505,7 +492,6 @@ try:
             left = split.column()
             left.operator(
                 'meshlint.select', text='Select Lint', icon='EDITMODE_HLT')
-
             right = split.column()
             if MeshLintVitalizer.is_live:
                 live_label = 'Pause Checking...'
@@ -515,15 +501,13 @@ try:
                 play_pause = 'PLAY'
             right.operator(
                 'meshlint.live_toggle', text=live_label, icon=play_pause)
-
             layout.split().operator(
                 'meshlint.objects_deselect',
-                text='Deselect all Lint-free Objects',
-                icon='UV_ISLANDSEL')
+                text='Deselect all Lint-free Objects', icon='UV_ISLANDSEL')
 
         def add_criticism(self, layout, context):
             col = layout.column()
-            active = context.active_object
+            # active = context.active_object
             if not has_active_mesh(context):
                 return
             total_problems = 0
@@ -548,10 +532,9 @@ try:
 
         def add_toggle_buttons(self, layout, context):
             col = layout.column()
-            col.row().label(text='Toggle:')
+            col.row().label(text='MeshLint rules to include:')
             for lint in MeshLintAnalyzer.CHECKS:
                 prop_name = lint['check_prop']
-                is_enabled = getattr(context.scene, prop_name)
                 label = 'Check ' + lint['label']
                 col.row().prop(context.scene, prop_name, text=label)
 
@@ -609,7 +592,7 @@ try:
                 'Text',
                 'Torus',
             ]
-            pat = '(%s)\.?\d*$' % '|'.join(default_names)
+            pat = '(%s)\.?\d*$' % '|'.join(default_names)   # noqa: W605 # flake8 ignore this line
             return re.match(pat, name) is not None
 
     def depluralize(**args):
@@ -811,7 +794,7 @@ try:
                         if self.warnings in ['default', 'always']:
                             warnings.filterwarnings('module',
                                                     category=DeprecationWarning,
-                                                    message='Please use assert\w+ instead.')
+                                                    message='Please use assert\w+ instead.')  # noqa: W605
                     startTime = time.time()
                     startTestRun = getattr(result, 'startTestRun', None)
                     if startTestRun is not None:
@@ -824,8 +807,9 @@ try:
                             stopTestRun()
                     stopTime = time.time()
                 timeTaken = stopTime - startTime
+                print(timeTaken)
                 result.printErrors()
-                run = result.testsRun
+                # run = result.testsRun
 
                 expectedFails = unexpectedSuccesses = skipped = 0
                 try:
@@ -891,17 +875,16 @@ try:
 
     def unregister():
         from bpy.utils import unregister_class
-
-        for cls in classes:
+        for cls in reversed(classes):
             unregister_class(cls)
 
     if __name__ == "__main__":
         register()
-except:
+# except:    # I'll kill these later after more testing
     # OK, I totally don't get why this is necessary. But otherwise I am not
     # seeing error text. Causes the extra indent over all above code. =(
-    import sys
-    exc = sys.exc_info()
-    print("MeshLint Oops: ", exc[1], exc[2])
+#    import sys
+#    exc = sys.exc_info()
+#    print("MeshLint Oops: ", exc[1], exc[2])
 
 # vim:ts=4 sw=4 sts=4
