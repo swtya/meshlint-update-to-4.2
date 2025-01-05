@@ -1,0 +1,19 @@
+# Generic files to ignore.
+.*
+
+# Python temp paths.
+__pycache__/
+*.py[cod]
+
+# Editors.
+*~
+*.swp
+*.swo
+*#
+
+# Local patches.
+/*.patch
+/*.diff
+
+# Locally built assets.
+/*.zip
