@@ -1,4 +1,4 @@
-# Welcome to MeshLint 2024.
+"""  Welcome to MeshLint 2024.
 #   This is a derivative work taken as a fork from ryanjosephking/meshlint.
 # The purpose is to make the required updates so that it is compatible with
 # Blender 4.2 onwards. Add-on management has been significantly modified and
@@ -12,8 +12,9 @@
 # Issues can be raised, but to set expectations I'm not a software developer!
 #   Credit remains with rking. The contribution from SavMartin, who completed
 # the port to the Blender 2.80 family, made this step possible for me.
-#
-# TODO:
+"""
+
+# The TO DO list:
 #  - Exempt mirror-plane verts. You should not get penalised for them.
 #  - Check for intersected faces??
 #   - Would probably be O(n^m) or something.
@@ -34,13 +35,19 @@
 # Look for the "seeing error text", below. Something is super-fishy, but this
 # is the workaround.
 # try:   # swapping in an if(1) so that the indent stays the same while testing more
-if (1):
+if "bpy" not in locals():
     import bpy
     import bmesh
     import time
     import re
     from mathutils import Vector
+else:
+    import importlib
+    importlib.reload(bmesh)
+    importlib.reload(time)
+    importlib.reload(re)
 
+if 1:
     SUBPANEL_LABEL = 'MeshLint'
     COMPLAINT_TIMEOUT = 3  # seconds
     ELEM_TYPES = ['verts', 'edges', 'faces']
@@ -49,40 +56,45 @@ if (1):
     TBD_STR = '...'
 
     def is_edit_mode():
+        """Tests for if the context is edit mode"""
         return 'EDIT_MESH' == bpy.context.mode
 
     def ensure_edit_mode():
+        """Forces the object into edit mode"""
         if not is_edit_mode():
             bpy.ops.object.editmode_toggle()
 
     def ensure_not_edit_mode():
+        """If in edit mode returns to object mode"""
         if is_edit_mode():
             bpy.ops.object.editmode_toggle()
 
     def has_active_mesh(context):
+        """Returns a bool of the active object being a mesh"""
         obj = context.active_object
         return obj and 'MESH' == obj.type
 
     class MeshLintAnalyzer:
+        """The main brain of the application: Finds the problems and defines the checks"""
         CHECKS = []
 
         def __init__(self):
-            self.obj = bpy.context.active_object
             ensure_edit_mode()
+            self.obj = bpy.context.active_object
             self.b = bmesh.from_edit_mesh(self.obj.data)
             self.num_problems_found = None
 
         def find_problems(self):
+            """Finds the problems"""
             analysis = []
             self.num_problems_found = 0
             for lint in MeshLintAnalyzer.CHECKS:
-                sym = lint['symbol']
-                should_check = getattr(bpy.context.scene, lint['check_prop'])
+                should_check = getattr(bpy.context.scene, f"{lint['check_prop']}")
                 if not should_check:
                     lint['count'] = N_A_STR
                     continue
                 lint['count'] = 0
-                check_method_name = 'check_' + sym
+                check_method_name = 'check_' + f"{lint['symbol']}"
                 check_method = getattr(type(self), check_method_name)
                 bad = check_method(self)
                 report = {'lint': lint}
@@ -95,10 +107,12 @@ if (1):
             return analysis
 
         def found_zero_problems(self):
+            """Just a quick way to have a bool for finding any problems"""
             return 0 == self.num_problems_found
 
         @classmethod
         def none_analysis(cls):
+            """Builds an empty analysis"""
             analysis = []
             for lint in cls.CHECKS:
                 row = {elemtype: [] for elemtype in ELEM_TYPES}
@@ -115,10 +129,11 @@ if (1):
         })
 
         def check_tris(self):
+            """Check for Tris"""
             bad = {'faces': []}
-            for f in self.b.faces:
-                if 3 == len(f.verts):
-                    bad['faces'].append(f.index)
+            for fff in self.b.faces:
+                if 3 == len(fff.verts):
+                    bad['faces'].append(fff.index)
             return bad
 
         CHECKS.append({
@@ -129,10 +144,11 @@ if (1):
         })
 
         def check_ngons(self):
+            """Check for Ngons"""
             bad = {'faces': []}
-            for f in self.b.faces:
-                if 4 < len(f.verts):
-                    bad['faces'].append(f.index)
+            for fff in self.b.faces:
+                if 4 < len(fff.verts):
+                    bad['faces'].append(fff.index)
             return bad
 
         CHECKS.append({
@@ -146,13 +162,14 @@ if (1):
         })
 
         def check_nonmanifold(self):
+            """Check for Nonmanifold"""
             bad = {}
             for elemtype in 'verts', 'edges':
                 bad[elemtype] = []
                 for elem in getattr(self.b, elemtype):
                     if not elem.is_manifold:
                         bad[elemtype].append(elem.index)
-            # TODO: Exempt mirror-plane verts.
+            # Exempt mirror-plane verts would go in here.
             # Plus: ...anybody wanna tackle Mirrors with an Object Offset?
             return bad
 
@@ -164,11 +181,14 @@ if (1):
             'default': True
         })
 
-        def check_interior_faces(self):  # translated from editmesh_select.c
+        def check_interior_faces(self):
+            """Check for Interior Faces
+            # translated from editmesh_select.c
+            """
             bad = {'faces': []}
-            for f in self.b.faces:
-                if not any(3 > len(e.link_faces) for e in f.edges):
-                    bad['faces'].append(f.index)
+            for fff in self.b.faces:
+                if not any(3 > len(eee.link_faces) for eee in fff.edges):
+                    bad['faces'].append(fff.index)
             return bad
 
         CHECKS.append({
@@ -179,10 +199,11 @@ if (1):
         })
 
         def check_three_poles(self):
+            """Check for 3-edge Poles"""
             bad = {'verts': []}
-            for v in self.b.verts:
-                if 3 == len(v.link_edges):
-                    bad['verts'].append(v.index)
+            for vvv in self.b.verts:
+                if 3 == len(vvv.link_edges):
+                    bad['verts'].append(vvv.index)
             return bad
 
         CHECKS.append({
@@ -193,10 +214,11 @@ if (1):
         })
 
         def check_five_poles(self):
+            """Check for 5-edge Poles"""
             bad = {'verts': []}
-            for v in self.b.verts:
-                if 5 == len(v.link_edges):
-                    bad['verts'].append(v.index)
+            for vvv in self.b.verts:
+                if 5 == len(vvv.link_edges):
+                    bad['verts'].append(vvv.index)
             return bad
 
         CHECKS.append({
@@ -210,57 +232,64 @@ if (1):
         })
 
         def check_sixplus_poles(self):
+            """Check for 6+-edge Poles"""
             bad = {'verts': []}
-            for v in self.b.verts:
-                if 5 < len(v.link_edges):
-                    bad['verts'].append(v.index)
+            for vvv in self.b.verts:
+                if 5 < len(vvv.link_edges):
+                    bad['verts'].append(vvv.index)
             return bad
         # [Your great new idea here] -> Tell me about it: rking@panoptic.com
 
         # ...plus the 'Default Name' check.
 
         def enable_anything_select_mode(self):
+            """Makes sure that we can select 'VERT', 'EDGE', 'FACE' """
             self.b.select_mode = {'VERT', 'EDGE', 'FACE'}
 
         def select_indices(self, elemtype, indices):
-            for i in indices:
+            """For a given element ('VERT', 'EDGE', 'FACE') then select that index """
+            for inc in indices:
                 if 'verts' == elemtype:
-                    self.select_vert(i)
+                    self.select_vert(inc)
                 elif 'edges' == elemtype:
-                    self.select_edge(i)
+                    self.select_edge(inc)
                 elif 'faces' == elemtype:
-                    self.select_face(i)
+                    self.select_face(inc)
                 else:
-                    print("MeshLint says: Huh?? → elemtype of %s." % elemtype)
+                    print(f"MeshLint says: Huh?? → elemtype of {elemtype}.")
 
         def select_vert(self, index):
-            ob = bpy.context.edit_object
-            me = ob.data
-            bm = bmesh.from_edit_mesh(me)
-            bm.verts.ensure_lookup_table()  # sav
+            """Select the given VERT index in the mesh"""
+            ob1 = bpy.context.edit_object
+            me1 = ob1.data
+            bm1 = bmesh.from_edit_mesh(me1)
+            bm1.verts.ensure_lookup_table()  # sav
             self.b.verts[index].select = True
 
         def select_edge(self, index):
-            ob = bpy.context.edit_object
-            me = ob.data
-            bm = bmesh.from_edit_mesh(me)
-            bm.edges.ensure_lookup_table()  # sav
+            """Select the given EDGE index in the mesh and its VERTS"""
+            ob2 = bpy.context.edit_object
+            me2 = ob2.data
+            bm2 = bmesh.from_edit_mesh(me2)
+            bm2.edges.ensure_lookup_table()  # sav
             edge = self.b.edges[index]
             edge.select = True
             for each in edge.verts:
                 self.select_vert(each.index)
 
         def select_face(self, index):
-            ob = bpy.context.edit_object
-            me = ob.data
-            bm = bmesh.from_edit_mesh(me)
-            bm.faces.ensure_lookup_table()  # sav
+            """Select the given FACE index in the mesh amd its EDGES"""
+            ob3 = bpy.context.edit_object
+            me3 = ob3.data
+            bm3 = bmesh.from_edit_mesh(me3)
+            bm3.faces.ensure_lookup_table()  # sav
             face = self.b.faces[index]
             face.select = True
             for each in face.edges:
                 self.select_edge(each.index)
 
         def topology_counts(self):
+            """Returns object data and number of faces, edges & verts"""
             return {
                 'data': self.obj.data,
                 'faces': len(self.b.faces),
@@ -269,47 +298,85 @@ if (1):
 
         for lint in CHECKS:
             lint['count'] = TBD_STR
-            lint['check_prop'] = 'meshlint_check_' + lint['symbol']
+            lint['check_prop'] = 'meshlint_check_' + f"{lint['symbol']}"
             setattr(
                 bpy.types.Scene,
-                lint['check_prop'],
+                f"{lint['check_prop']}",
                 bpy.props.BoolProperty(
                     default=lint['default'],
                     description=lint['definition']))
             if hasattr(bpy.context, 'scene'):
                 # At first startup then context does not have a scene attribute
-                if hasattr(bpy.context.scene, lint['check_prop']):
+                if hasattr(bpy.context.scene, f"{lint['check_prop']}"):
                     # When reloading the check_prop attribute, it might not have been created
-                    # If it has then proceed with defaulting the toggles settings.
-                    setattr(bpy.context.scene, lint['check_prop'], lint['default'])
+                    # If it has, then proceed with defaulting the toggles settings.
+                    setattr(bpy.context.scene, f"{lint['check_prop']}", lint['default'])
 
     @bpy.app.handlers.persistent
-    def global_repeated_check(dummy):
+    def global_repeated_check(scene, depsgraph):
+        """Function decorator for callback functions not to be removed when loading new files"""
         MeshLintContinuousChecker.check()
 
-    class MeshLintContinuousChecker():
+    class MeshLintContinuousChecker:
+        """This is the continuous checker routine"""
         current_message = ''
         time_complained = 0
-        previous_topology_counts = None
+        # previous_topology_counts = None
         previous_analysis = None
+        previous_data_name = None
 
         @classmethod
         def check(cls):
+            """This is the check def"""
             if not is_edit_mode():
                 return
             analyzer = MeshLintAnalyzer()
             now_counts = analyzer.topology_counts()
-            previous_topology_counts = cls.previous_topology_counts
+            if hasattr(cls, 'previous_topology_counts'):
+                previous_topology_counts = cls.previous_topology_counts
+                if previous_topology_counts is not None:
+                        # or now_counts != previous_topology_counts:
+                    try:
+                        if 'data' not in previous_topology_counts:
+                            print('no "data" in previous topology counts')
+                        # print(previous_topology_counts['data'])
+                        if not hasattr(previous_topology_counts['data'], 'name'):
+                            print('no "name" attribute')
+                    except ReferenceError:
+                        print('Must be "data" that did not exist')
+                        print(previous_topology_counts)
+                    try:
+                        previous_data_name = previous_topology_counts['data'].name
+                    except ReferenceError:
+                        previous_data_name = None
+                        print('Caught: Stale mesh topology counts, object added or deleted')
+                else:
+                    previous_data_name = None
+            else:
+                print('previous_topology_counts did not exist')
+                previous_topology_counts = None
+                previous_data_name = None
+
+            now_name = now_counts['data'].name
+            # print('top of if')
+            # print(previous_topology_counts)
+            # analyzer.find_problems() # putting this here makes it run more often
             if None is previous_topology_counts \
                     or now_counts != previous_topology_counts:
+                #if not previous_data_name == now_name:
+                #    print('now equals previsous')
+                #    before = MeshLintAnalyzer.none_analysis()
+                #else:
+                #    before = 'unknown before'
+                print('starting to find problems')
                 analysis = analyzer.find_problems()
-                diff_msg = cls.diff_analyses(
-                    cls.previous_analysis, analysis)
+                diff_msg = cls.diff_analyses(cls.previous_analysis, analysis)
                 if diff_msg is not None:
                     cls.announce(diff_msg)
                     cls.time_complained = time.time()
                 cls.previous_topology_counts = now_counts
                 cls.previous_analysis = analysis
+
             if cls.time_complained is not None \
                     and COMPLAINT_TIMEOUT < time.time() - cls.time_complained:
                 cls.announce(None)
@@ -317,6 +384,7 @@ if (1):
 
         @classmethod
         def diff_analyses(cls, before, after):
+            """Compares before and after; well previous to now"""
             if None is before:
                 before = MeshLintAnalyzer.none_analysis()
             report_strings = []
@@ -324,7 +392,7 @@ if (1):
             dict_now = cls.make_labels_dict(after)
             for check in MeshLintAnalyzer.CHECKS:
                 check_name = check['label']
-                if check_name not in dict_now.keys():
+                if check_name not in dict_now:
                     continue
                 report = dict_now[check_name]
                 report_before = dict_before.get(check_name, {})
@@ -333,19 +401,17 @@ if (1):
                     elem_list_before = report_before.get(elemtype, [])
                     if len(elem_list) > len(elem_list_before):
                         count_diff = len(elem_list) - len(elem_list_before)
-                        elem_string = depluralize(
-                            count=count_diff, string=elemtype)
-                        check_elem_strings.append(
-                            str(count_diff) + ' ' + elem_string)
-                if len(check_elem_strings):
-                    report_strings.append(
-                        check_name + ': ' + ', '.join(check_elem_strings))
-            if len(report_strings):
+                        check_elem_strings.append(str(count_diff) + ' ' +
+                                                  depluralize(count=count_diff, string=elemtype))
+                if check_elem_strings:
+                    report_strings.append(check_name + ': ' + ', '.join(check_elem_strings))
+            if report_strings:
                 return 'Found ' + ', '.join(report_strings)
             return None
 
         @classmethod
         def make_labels_dict(cls, analysis):
+            """Takes in an analysis and returns a dictionary of labels"""
             if None is analysis:
                 return {}
             labels_dict = {}
@@ -358,6 +424,8 @@ if (1):
 
         @classmethod
         def announce(cls, message):
+            """If the INFO box is open then print a message to the header area
+            This is way easier than writing into that confounded box"""
             for area in bpy.context.screen.areas:
                 if 'INFO' != area.type:
                     continue
@@ -367,11 +435,14 @@ if (1):
                     area.header_text_set('MeshLint: ' + message)
 
     class MeshLintVitalizer(bpy.types.Operator):
-        'Toggles the real-time execution of the checks (Edit Mode only)'
+        """Toggles the real-time execution of the checks (Edit Mode only)"""
         bl_idname = 'meshlint.live_toggle'
         bl_label = 'MeshLint Live Toggle'
+        bl_options = {'REGISTER', 'UNDO'}
 
         is_live = False
+        text = 'Continuous Check!!'
+        play_pause = 'PLAY'
 
         @classmethod
         def poll(cls, context):
@@ -381,30 +452,47 @@ if (1):
             if MeshLintVitalizer.is_live:
                 bpy.app.handlers.depsgraph_update_post.remove(global_repeated_check)  # sav
                 MeshLintVitalizer.is_live = False
+                MeshLintVitalizer.text = 'Continuous Check!'
+                MeshLintVitalizer.play_pause = 'PLAY'
+                for area in bpy.context.screen.areas:
+                    if 'INFO' == area.type:             # Prevents the title of the INFO getting stuck when
+                        area.header_text_set(None)      # stopping the continuous checker.
             else:
                 bpy.app.handlers.depsgraph_update_post.append(global_repeated_check)  # sav
                 MeshLintVitalizer.is_live = True
+                MeshLintVitalizer.text = 'Pause Checking...'
+                MeshLintVitalizer.play_pause = 'PAUSE'
             return {'FINISHED'}
 
     def activate(obj):
+        """Makes the passed in object active"""
         # bpy.context.scene.objects.active = obj #sav
         bpy.context.view_layer.objects.active = obj
 
     class MeshLintObjectLooper:
-        def examine_active_object(self):
+        """Routines for examining the scene objects"""
+        def __init__(self):
+            self.original_active = bpy.context.active_object
+            self.troubled_meshes = []
+
+        @staticmethod
+        def examine_active_object():
+            """Conduct lint analysis of the selected object"""
             analyzer = MeshLintAnalyzer()
             analyzer.enable_anything_select_mode()
-            self.select_none()
+            # self.select_none()
+            bpy.ops.mesh.select_all(action='DESELECT')
             analysis = analyzer.find_problems()
             for lint in analysis:
                 for elemtype in ELEM_TYPES:
                     indices = lint[elemtype]
                     analyzer.select_indices(elemtype, indices)
+            print('selected all the issues')
+            bpy.context.area.tag_redraw()
             return analyzer.found_zero_problems()
 
         def examine_all_selected_meshes(self):
-            self.original_active = bpy.context.active_object
-            self.troubled_meshes = []
+            """ For the current object plus all selected objects do lint analysis"""
             examinees = [self.original_active] + bpy.context.selected_objects
             for obj in examinees:
                 if 'MESH' != obj.type:
@@ -419,17 +507,19 @@ if (1):
                 if obj.select_get:
                     activate(obj)
                     break
-            self.handle_troubled_meshes()
+            if self.troubled_meshes:
+                MeshLintObjectDeselector.handle_troubled_meshes(self)
             bpy.context.area.tag_redraw()
 
-        def select_none(self):
-            bpy.ops.mesh.select_all(action='DESELECT')
+        # def select_none(self):
+            # bpy.ops.mesh.select_all(action='DESELECT')
 
     class MeshLintSelector(MeshLintObjectLooper, bpy.types.Operator):
-        'Uncheck boxes below to prevent those checks from running'
+        """Uncheck boxes below to prevent those checks from running"""
         bl_idname = 'meshlint.select'
         bl_label = 'MeshLint Select'
         bl_options = {'REGISTER', 'UNDO'}
+        text = 'Select Lint'
 
         @classmethod
         def poll(cls, context):
@@ -441,25 +531,28 @@ if (1):
                 self.examine_active_object()
             else:
                 self.examine_all_selected_meshes()
-                if len(self.troubled_meshes):
+                if self.troubled_meshes:
                     ensure_edit_mode()
                 elif 'EDIT_MESH' != original_mode:
                     ensure_not_edit_mode()
             return {'FINISHED'}
 
-        def handle_troubled_meshes(self):
-            pass
+        #def handle_troubled_meshes(self):
+        #    """Nothing to see here
+        #    Has a kickback from:   def examine_all_selected_meshes(self):"""
+        #    # future ticket might need to play with this more
+        #    pass
 
     class MeshLintObjectDeselector(MeshLintObjectLooper, bpy.types.Operator):
-        'Uncheck boxes below to prevent those checks from running (Object Mode only)'
+        """Uncheck boxes below to prevent those checks from running (Object Mode only)"""
         bl_idname = 'meshlint.objects_deselect'
         bl_label = 'MeshLint Objects Deselect'
         bl_options = {'REGISTER', 'UNDO'}
+        text = 'Deselect all Lint-free Objects'
 
         @classmethod
         def poll(cls, context):
-            selected_meshses = [
-                o for o in bpy.context.selected_objects if o.type == 'MESH']
+            selected_meshses = [o for o in context.selected_objects if o.type == 'MESH']
             return 1 < len(selected_meshses) and not is_edit_mode()
 
         def execute(self, context):
@@ -467,11 +560,15 @@ if (1):
             return {'FINISHED'}
 
         def handle_troubled_meshes(self):
+            """Does the deselection of the troubled mesh list"""
+            print("deselection happening")
             for obj in bpy.context.selected_objects:
                 if obj not in self.troubled_meshes:
                     obj.select_set(False)
 
     class MESH_PT_MeshLintControl(bpy.types.Panel):
+        """Responsible for building the GUI in the Properties window on the Data tab.
+        The SUBPANEL title is set as a constant at the top of the file. """
         bl_space_type = 'PROPERTIES'
         bl_region_type = 'WINDOW'
         bl_context = 'data'
@@ -479,33 +576,37 @@ if (1):
 
         @classmethod
         def poll(cls, context):
+            """Boolean gatekeeper for the draw"""
             return has_active_mesh(context)
 
         def draw(self, context):
+            """Pulls together the three components in the side panel
+            [ The buttons ]
+            [ The report result aka criticism ]
+            [ The lint tick boxes for test options to enable ]
+            """
             layout = self.layout
             self.add_main_buttons(layout)
             self.add_criticism(layout, context)
             self.add_toggle_buttons(layout, context)
 
-        def add_main_buttons(self, layout):
+        @staticmethod
+        def add_main_buttons(layout):
+            """Puts the three buttons onto the side panel
+            [  Select Lint  ]  [  Continuous Check  ]
+            [    Deselect all Lint-free Objects     ]
+            """
             split = layout.split()
             left = split.column()
-            left.operator(
-                'meshlint.select', text='Select Lint', icon='EDITMODE_HLT')
+            left.operator(MeshLintSelector.bl_idname, text=MeshLintSelector.text, icon='EDITMODE_HLT')
             right = split.column()
-            if MeshLintVitalizer.is_live:
-                live_label = 'Pause Checking...'
-                play_pause = 'PAUSE'
-            else:
-                live_label = 'Continuous Check!'
-                play_pause = 'PLAY'
-            right.operator(
-                'meshlint.live_toggle', text=live_label, icon=play_pause)
-            layout.split().operator(
-                'meshlint.objects_deselect',
-                text='Deselect all Lint-free Objects', icon='UV_ISLANDSEL')
+            right.operator(MeshLintVitalizer.bl_idname, text=MeshLintVitalizer.text, icon=MeshLintVitalizer.play_pause)
+            layout.split().operator(MeshLintObjectDeselector.bl_idname,
+                                    text=MeshLintObjectDeselector.text, icon='UV_ISLANDSEL')
 
-        def add_criticism(self, layout, context):
+        @staticmethod
+        def add_criticism(layout, context):
+            """Builds the lint numerical result for each test"""
             col = layout.column()
             # active = context.active_object
             if not has_active_mesh(context):
@@ -514,32 +615,34 @@ if (1):
             for lint in MeshLintAnalyzer.CHECKS:
                 count = lint['count']
                 if count in (TBD_STR, N_A_STR):
-                    label = str(count) + ' ' + lint['label']
+                    label = str(count) + ' ' + f"{lint['label']}"
                     reward = 'SOLO_OFF'
                 elif 0 == count:
-                    label = 'No %s!' % lint['label']
+                    label = f'Zero {lint["label"]}!'
                     reward = 'SOLO_ON'
                 else:
                     total_problems += count
-                    label = str(count) + 'x ' + lint['label']
+                    label = str(count) + 'x ' + f"{lint['label']}"
                     label = depluralize(count=count, string=label)
                     reward = 'ERROR'
                 col.row().label(text=label, icon=reward)
-            name_crits = MESH_PT_MeshLintControl.build_object_criticisms(
-                            bpy.context.selected_objects, total_problems)
+            name_crits = MESH_PT_MeshLintControl.build_object_criticisms(bpy.context.selected_objects, total_problems)
             for crit in name_crits:
                 col.row().label(text=crit)
 
-        def add_toggle_buttons(self, layout, context):
+        @staticmethod
+        def add_toggle_buttons(layout, context):
+            """Builds the tick boxes for the GUI"""
             col = layout.column()
             col.row().label(text='MeshLint rules to include:')
             for lint in MeshLintAnalyzer.CHECKS:
                 prop_name = lint['check_prop']
-                label = 'Check ' + lint['label']
+                label = 'Check ' + f"{lint['label']}"
                 col.row().prop(context.scene, prop_name, text=label)
 
         @classmethod
         def build_object_criticisms(cls, objects, total_problems):
+            """Generates the criticism text for the side panel"""
             already_complained = total_problems > 0
             criticisms = []
 
@@ -548,8 +651,7 @@ if (1):
                     conjunction = 'and also'
                 else:
                     conjunction = 'but'
-                criticisms.append('...%s "%s" %s.' % (
-                    conjunction, obj.name, crit))
+                criticisms.append(f'...{conjunction} "{obj.name}" {crit}.')
             for obj in objects:
                 if MESH_PT_MeshLintControl.has_unapplied_scale(obj.scale):
                     add_crit('has an unapplied scale')
@@ -561,10 +663,13 @@ if (1):
 
         @classmethod
         def has_unapplied_scale(cls, scale):
+            """Where an object has no outstanding scale to be applied the values will be 1.0.
+            ThisLooks at the scale of an object and determines if it is ==1.0."""
             return 3 != len([c for c in scale if c == 1.0])
 
         @classmethod
         def is_bad_name(cls, name):
+            """A list of names that are default"""
             default_names = [
                 'BezierCircle',
                 'BezierCurve',
@@ -592,14 +697,15 @@ if (1):
                 'Text',
                 'Torus',
             ]
-            pat = '(%s)\.?\d*$' % '|'.join(default_names)   # noqa: W605 # flake8 ignore this line
+            # pat = '(%s)\.?\d*$' % '|'.join(default_names)   # noqa: W605 # flake8 ignore this line
+            pat = rf'({"|".join(default_names)})\.?\d*$'
             return re.match(pat, name) is not None
 
     def depluralize(**args):
+        """Singular of things is thing, this just knocks off the s at the end of a string."""
         if 1 == args['count']:
             return args['string'].rstrip('s')
-        else:
-            return args['string']
+        return args['string']
 
     # Hrm. Why does it work for some Blender's but not others?
     try:
@@ -620,11 +726,11 @@ if (1):
                 for bad in ['Cube', 'Cube.001', 'Sphere.123']:
                     self.assertEqual(
                         True, MESH_PT_MeshLintControl.is_bad_name(bad),
-                        "Bad name: %s" % bad)
-                for ok in ['Whatever', 'NumbersOkToo.001']:
+                        f"Bad name: {bad}")
+                for aok in ['Whatever', 'NumbersOkToo.001']:
                     self.assertEqual(
-                        False, MESH_PT_MeshLintControl.is_bad_name(ok),
-                        "OK name: %s" % ok)
+                        False, MESH_PT_MeshLintControl.is_bad_name(aok),
+                        f"OK name: {aok}")
 
         class TestUtilities(unittest.TestCase):
             def test_depluralize(self):
@@ -726,30 +832,30 @@ if (1):
 
         class TestUI(unittest.TestCase):
             def test_complaints(self):
-                f = MESH_PT_MeshLintControl.build_object_criticisms
-                self.assertEqual([], f([], 0), 'Nothing selected')
+                fff = MESH_PT_MeshLintControl.build_object_criticisms
+                self.assertEqual([], fff([], 0), 'Nothing selected')
                 self.assertEqual(
                     [],
-                    f([MockBlenderObject('lsmft')], 0),
+                    fff([MockBlenderObject('lsmft')], 0),
                     'Ok name')
                 self.assertEqual(
                     ['...but "Cube" is not a great name.'],
-                    f([MockBlenderObject('Cube')], 0),
+                    fff([MockBlenderObject('Cube')], 0),
                     'Bad name, otherwise problem-free.')
                 self.assertEqual(
                     [],
-                    f([MockBlenderObject('Hassenfrass')], 12),
+                    fff([MockBlenderObject('Hassenfrass')], 12),
                     'Good name, but with problems.')
                 self.assertEqual(
                     ['...and also "Cube" is not a great name.'],
-                    f([MockBlenderObject('Cube')], 23),
+                    fff([MockBlenderObject('Cube')], 23),
                     'Bad name, and problems, too.')
                 self.assertEqual(
                     [
                         '...but "Sphere" is not a great name.',
                         '...and also "Cube" is not a great name.'
                     ],
-                    f([
+                    fff([
                         MockBlenderObject('Sphere'),
                         MockBlenderObject('Cube')], 0),
                     'Two bad names.')
@@ -757,7 +863,7 @@ if (1):
                 scaled = MockBlenderObject('Solartech', scale=Vector([.2, 2, 1]))
                 self.assertEqual(
                     ['...but "Solartech" has an unapplied scale.'],
-                    f([scaled], 0),
+                    fff([scaled], 0),
                     'Only problem is unapplied scale.'
                 )
 
@@ -776,7 +882,7 @@ if (1):
             # option is to override the stream and substitute out the success
             # case, but that's a mess, too. - rking
             def run(self, test):
-                "Run the given test case or test suite."
+                """Run the given test case or test suite."""
                 result = self._makeResult()
                 unittest.registerResult(result)
                 result.failfast = self.failfast
@@ -794,7 +900,7 @@ if (1):
                         if self.warnings in ['default', 'always']:
                             warnings.filterwarnings('module',
                                                     category=DeprecationWarning,
-                                                    message='Please use assert\w+ instead.')  # noqa: W605
+                                                    message=r'Please use assert\w+ instead.')
                     startTime = time.time()
                     startTestRun = getattr(result, 'startTestRun', None)
                     if startTestRun is not None:
@@ -826,24 +932,26 @@ if (1):
                     self.stream.write("FAILED")
                     failed, errored = len(result.failures), len(result.errors)
                     if failed:
-                        infos.append("failures=%d" % failed)
+                        infos.append(f"failures={failed:d}")
                     if errored:
-                        infos.append("errors=%d" % errored)
+                        infos.append(f"errors={errored:d}")
                 if skipped:
-                    infos.append("skipped=%d" % skipped)
+                    infos.append(f"skipped={skipped:d}")
                 if expectedFails:
-                    infos.append("expected failures=%d" % expectedFails)
+                    infos.append(f"expected failures={expectedFails:d}")
                 if unexpectedSuccesses:
                     infos.append(
-                        "unexpected successes=%d" % unexpectedSuccesses)
+                        f"unexpected successes={unexpectedSuccesses:d}")
                 return result
 
         if __name__ == '__main__':
+            print('MeshLint: Hello from unittester')
             unittest.main(
                 testRunner=QuietTestRunner,
                 argv=['dummy'],
                 exit=False,
-                verbosity=0)
+                verbosity=2)
+            print('MeshLint: Goodbye from unittester')
 
     except ImportError:
         print(
@@ -869,14 +977,19 @@ if (1):
     )
 
     def register():
-        from bpy.utils import register_class
+        """Register the classes in Blender"""
+        #from bpy.utils import register_class
         for cls in classes:
-            register_class(cls)
+            bpy.utils.register_class(cls)
 
     def unregister():
-        from bpy.utils import unregister_class
+        """Un-Register the classes in Blender"""
+        #from bpy.utils import unregister_class
+        for handy in bpy.app.handlers.depsgraph_update_post:
+            if handy.__name__ == 'global_repeated_check':
+                bpy.app.handlers.depsgraph_update_post.remove(handy)
         for cls in reversed(classes):
-            unregister_class(cls)
+            bpy.utils.unregister_class(cls)
 
     if __name__ == "__main__":
         register()
