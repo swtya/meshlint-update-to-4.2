@@ -30,5 +30,6 @@ paths_exclude_pattern = [
   "__pycache__/",
   "testblends",
   "/.*/",
+  "/.*",
   "/*.zip",
 ]
