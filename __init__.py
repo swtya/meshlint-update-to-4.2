@@ -1,17 +1,15 @@
 """  Welcome to MeshLint 2024.
-#   This is a derivative work taken as a fork from ryanjosephking/meshlint.
-# The purpose is to make the required updates so that it is compatible with
-# Blender 4.2 onwards. Add-on management has been significantly modified and
-# these third party plugins are now referred to as "Extensions".
-#   I found this tool useful while debugging errors in BoltFactory generated
-# mesh objects when making 3D print parts. In order to keep using it I
-# required a port to the latest Blender release and could not find it having
+#   This is a derivative work taken as a fork from ryanjosephking/meshlint. The purpose is to make the required
+# updates so that it is compatible with Blender 4.2 onwards. Add-on management has been significantly modified
+# and these third party plugins are now referred to as "Extensions".
+#   I found this tool useful while debugging errors in BoltFactory generated mesh objects when making 3D print
+# parts. In order to keep using it I required a port to the latest Blender release and could not find it having
 # already been done.
 #   Code is hosted on GitHub where the ancestry can be traced back.
 # https://github.com/swtya/meshlint-update-to-4.2
 # Issues can be raised, but to set expectations I'm not a software developer!
-#   Credit remains with rking. The contribution from SavMartin, who completed
-# the port to the Blender 2.80 family, made this step possible for me.
+#   Credit remains with rking. The contribution from SavMartin, who completed the port to the Blender 2.80
+# family, made this step possible for me.
 """
 
 # The TO DO list:
@@ -20,21 +18,13 @@
 #   - Would probably be O(n^m) or something.
 #   - Would need to check the post-modified mesh (e.g., Armature-deformed)
 #  - Coplanar check, especially good for Ngons.
-#  - Check Normal consistency? I've had several people request this, though I
-#    still feel like the Ctrl+n tool has problems solving it, so I am
-#    unconfident that I will be able to do as good or better. It is true,
-#    though, that you can simply allow the user to enable the check, and if it
-#    is acting wonky they can disable it.
-#  - Consider adding to the 'n' Properties Panel instead of Object Data. Or,
-#    perhaps, a user preference.
-#  - Maybe add a "Skip to Next" option. So far at least 1 user has reported
-#    this. Personally, I think you should hit Tab and deselect the one you
-#    want to skip, but I haven't thought it through too far.
+#  - Check Normal consistency? I've had several people request this, though I still feel like the Ctrl+n tool
+#    has problems solving it, so I am unconfident that I will be able to do as good or better. It is true,
+#    though, that you can simply allow the user to enable the check, and if it is acting wonky they can disable it.
+#  - Consider adding to the 'n' Properties Panel instead of Object Data. Or, perhaps, a user preference.
+#  - Maybe add a "Skip to Next" option. So far at least 1 user has reported this. Personally, I think you
+#    should hit Tab and deselect the one you want to skip, but I haven't thought it through too far.
 
-
-# Look for the "seeing error text", below. Something is super-fishy, but this
-# is the workaround.
-# try:   # swapping in an if(1) so that the indent stays the same while testing more
 if "bpy" not in locals():
     import bpy
     import bmesh
@@ -335,7 +325,6 @@ class MeshLintContinuousChecker:
         if hasattr(cls, 'previous_topology_counts'):
             previous_topology_counts = cls.previous_topology_counts
             if previous_topology_counts is not None:
-                    # or now_counts != previous_topology_counts:
                 try:
                     if 'data' not in previous_topology_counts:
                         print('no "data" in previous topology counts')
@@ -345,29 +334,14 @@ class MeshLintContinuousChecker:
                 except ReferenceError:
                     print('Must be "data" that did not exist')
                     print(previous_topology_counts)
-                ## try:
-                    ## previous_data_name = previous_topology_counts['data'].name
-                ## except ReferenceError:
-                    ## previous_data_name = None
-                    ## print('Caught: Stale mesh topology counts, object added or deleted')
-            ## else:
-                ## previous_data_name = None
         else:
             # print('previous_topology_counts did not exist')
             previous_topology_counts = None
-            ## previous_data_name = None
 
-        ## now_name = now_counts['data'].name
         # print(previous_topology_counts)
-        # analyzer.find_problems() # putting this here makes it run more often
+        # analyzer.find_problems()    # putting this here makes it run more often
         if None is previous_topology_counts \
                 or now_counts != previous_topology_counts:
-            #if not previous_data_name == now_name:
-            #    print('now equals previous')
-            #    before = MeshLintAnalyzer.none_analysis()
-            #else:
-            #    before = 'unknown before'
-            # print('starting to find problems')
             analysis = analyzer.find_problems()
             diff_msg = cls.diff_analyses(cls.previous_analysis, analysis)
             if diff_msg is not None:
@@ -663,7 +637,7 @@ class MESH_PT_MeshLintControl(bpy.types.Panel):
     @classmethod
     def has_unapplied_scale(cls, scale):
         """Where an object has no outstanding scale to be applied the values will be 1.0.
-        ThisLooks at the scale of an object and determines if it is ==1.0."""
+        This Looks at the scale of an object and determines if it is ==1.0."""
         return 3 != len([c for c in scale if c == 1.0])
 
     @classmethod

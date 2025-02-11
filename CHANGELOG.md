@@ -10,8 +10,16 @@ New Features:
 * Behaves as an Extension now.
 
 Fixes:
+* Move from Addon to Extension #6
+  * This changelog added
+  * gitignore file added
+  * blender_manifest.toml restructured 
+  * API usage updated for object selection
+  * unittest updates
+* Pylint score of 9.22, I hope that's "good".
 
 Known Issues:
+* Incorrect lint selection with multiple objects #7
 
 ---
 ### Version 0.1.1-for-4.2-beta
