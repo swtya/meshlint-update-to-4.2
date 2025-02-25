@@ -90,7 +90,7 @@ The Name
 --------
 
 It comes from programming tools that do similar things, but for code
-([Wikipedia Link](http://en.wikipedia.org/wiki/Lint\_(software\))). If you
+([Wikipedia Link](http://en.wikipedia.org/wiki/Lint\_(software\)))). If you
 program, you might want to Google about and see if such a thing exists for
 your language. 
 
@@ -103,22 +103,18 @@ debugging and brainstorming, both. There's a spot right below this text for a
 
 <rking@panoptic.com>
 
-Getting Git
+Getting with Git
 -----------
 
 Best way is to:
 
-    git clone git@github.com:ryanjosephking/meshlint.git
+    git clone git@github.com:swtya/meshlint-update-to-4.2.git
 
 That way, you can `git pull` later on and it will automatically refresh to the
 latest (theoretically-good) version.
 
 But I realize that not everyone has `git` or an operating system capable of
-symlinking.
-
-So, for those that can't: You can simply download the
-[__init__.py](https://raw.github.com/ryanjosephking/meshlint/master/__init__.py)
-script directly. (And re-visit that URL for the newest version, later on.)
+symlinking, so I have provided [release packages](https://github.com/swtya/meshlint-update-to-4.2/releases).
 
 
 Thanks
