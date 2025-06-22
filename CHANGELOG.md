@@ -1,5 +1,20 @@
 # Changelog
 
+---
+### Version 0.1.2 for Blender 4.2 and 4.3
+
+New Features:
+* None. Works with Blender 4.2 and 4.3
+
+Fixes:
+* Refactoring out unittests #10
+  * Separate unittests into new file
+  * Test suite to execute multiple Blender versions.
+
+Known Issues:
+* Incorrect lint selection with multiple objects #7
+* Deselection of Lint-free objects does not happen if all are lint free.
+* Discovered broken for Blender 4.4 & 4.5 - they changed a python API. #9
 
 ---
 ### Version 0.1.1-for-4.2
@@ -7,7 +22,7 @@
 Swtya
 
 New Features: 
-* Behaves as an Extension now.
+* Behaves as an Extension now. Works with Blender 4.2 and 4.3
 
 Fixes:
 * Move from Addon to Extension #6
@@ -20,6 +35,8 @@ Fixes:
 
 Known Issues:
 * Incorrect lint selection with multiple objects #7
+* Deselection of Lint-free objects does not happen if all are lint free.
+* Broken for Blender 4.4 - they changed a python API.
 
 ---
 ### Version 0.1.1-for-4.2-beta
