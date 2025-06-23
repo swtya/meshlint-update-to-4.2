@@ -1,6 +1,20 @@
 # Changelog
 
 ---
+### Version 0.1.3 for Blender 4.2 onwards
+
+New Features:
+* None. Works with Blender 4.2, 4.3, 4.4 & 4.5
+
+Fixes:
+* Broken for Blender 4.4 & 4.5 - they changed a python API. #9
+* Prevent double registration from unittest.
+
+Known Issues:
+* Incorrect lint selection with multiple objects #7
+* Deselection of Lint-free objects does not happen if all are lint free.
+
+---
 ### Version 0.1.2 for Blender 4.2 and 4.3
 
 New Features:
