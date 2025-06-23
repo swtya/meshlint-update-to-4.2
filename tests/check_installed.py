@@ -13,7 +13,7 @@ import bmesh
 import bpy
 
 EXTENSION_NAME = "MeshLint"     # Case matters
-MIN_VERSION = (0,1,2)
+MIN_VERSION = (0,1,3)
 
 
 def test_loaded() -> None:

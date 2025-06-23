@@ -68,9 +68,8 @@ class MeshLintAnalyzer:
     """The main brain of the application: Finds the problems and defines the checks"""
     CHECKS = []
 
-    def __init__(self):
-    # def __init__(self, *args, **kwargs):
-        #super().__init__(*args, **kwargs)      # For blender 4.4 onwards
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)      # For blender 4.4 onwards
         ensure_edit_mode()
         self.obj = bpy.context.active_object
         self.b = bmesh.from_edit_mesh(self.obj.data)
@@ -448,9 +447,8 @@ def activate(obj):
 
 class MeshLintObjectLooper:
     """Routines for examining the scene objects"""
-    def __init__(self):
-    # def __init__(self, *args, **kwargs):
-        # super().__init__(*args, **kwargs)         # For blender 4.4 onwards
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)         # For blender 4.4 onwards
         self.original_active = bpy.context.active_object
         self.troubled_meshes = []
 
@@ -742,8 +740,9 @@ classes = (
 
 def register():
     """Register the classes in Blender"""
-    for cls in classes:
-        bpy.utils.register_class(cls)
+    if not hasattr(bpy.types, 'MESH_PT_MeshLintControl'):  # Prevent double registration from unittest
+        for cls in classes:
+            bpy.utils.register_class(cls)
 
 def unregister():
     """Un-Register the classes in Blender & also make sure continuous to stopped"""
@@ -751,7 +750,10 @@ def unregister():
         if handy.__name__ == 'meshlint_gbl_continuous_check':
             bpy.app.handlers.depsgraph_update_post.remove(handy)
     for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
+        try:
+            bpy.utils.unregister_class(cls)
+        except:
+            pass
 
 if __name__ == "__main__":
     register()
